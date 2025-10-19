@@ -1,122 +1,115 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bó hoa và nhạc</title>
-
-  <style>
-    body {
-      margin: 0;
-      overflow: hidden;
-      background: linear-gradient(to bottom, #ffe6f0, #ffffff);
-      height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      flex-direction: column;
-      position: relative;
-      touch-action: manipulation;
-    }
-
-    img {
-      width: 45vw;
-      max-width: 300px;
-      height: auto;
-      animation: sway 3s ease-in-out infinite alternate;
-      z-index: 2;
-      user-select: none;
-      pointer-events: none;
-    }
-
-    @keyframes sway {
-      0% { transform: rotate(-2deg); }
-      100% { transform: rotate(2deg); }
-    }
-
-    /* Hoa rơi */
-    .petal {
-      position: absolute;
-      top: -10px;
-      background-color: pink;
-      border-radius: 50%;
-      opacity: 0.8;
-      animation: fall linear infinite;
-      z-index: 1;
-    }
-
-    @keyframes fall {
-      0% {
-        transform: translateY(0) rotate(0deg);
-        opacity: 1;
-      }
-      100% {
-        transform: translateY(100vh) rotate(720deg);
-        opacity: 0;
-      }
-    }
-
-    h3 {
-      position: absolute;
-      bottom: 15px;
-      color: #d63384;
-      font-family: 'Segoe UI', sans-serif;
-      text-align: center;
-      font-size: 1.1em;
-      z-index: 3;
-    }
-
-    @media (max-width: 600px) {
-      img {
-        width: 70vw;
-      }
-      h3 {
-        font-size: 1em;
-      }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chúc mừng 20/10</title>
+<style>
+  body {
+    margin: 0;
+    overflow: hidden;
+    height: 100vh;
+    background: linear-gradient(to bottom right, #ffe6f0, #fff0f5);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    text-align: center;
+  }
+  canvas {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+  }
+  #flower {
+    position: relative;
+    z-index: 2;
+    transform: scale(1.5);
+    animation: sway 3s ease-in-out infinite alternate;
+  }
+  @keyframes sway {
+    0% { transform: translateY(0) rotate(0deg) scale(1.5); }
+    100% { transform: translateY(-5px) rotate(2deg) scale(1.5); }
+  }
+  h1 {
+    position: relative;
+    z-index: 2;
+    color: #d63384;
+    font-size: 2rem;
+    margin-bottom: 50px;
+    font-family: "Brush Script MT", cursive;
+    text-shadow: 2px 2px 6px rgba(255, 192, 203, 0.7);
+  }
+</style>
 </head>
 <body>
 
-  <img src="hoa.png" alt="Bó hoa" id="hoa">
+<canvas id="petals"></canvas>
+<img id="flower" src="hoa.png" alt="Bó hoa" />
+<h1>💐 Chúc Thi 20/10 vui vẻ! 💕</h1>
 
-  <h3>🌸 Chạm vào màn hình để nghe nhạc 🌸</h3>
+<audio id="music" autoplay loop>
+  <source src="nhac.mp3" type="audio/mpeg">
+</audio>
 
-  <!-- KHÔNG có autoplay -->
-  <audio id="nhac" src="nhac.mp3" preload="none"></audio>
+<script>
+const audio = document.getElementById('music');
+// Tự động phát nhạc, nếu bị chặn thì chạm 1 lần là chạy
+document.body.addEventListener('click', () => {
+  if (audio.paused) audio.play();
+});
 
-  <script>
-    // Tạo hiệu ứng hoa rơi
-    function createPetal() {
-      const petal = document.createElement('div');
-      petal.classList.add('petal');
-      petal.style.left = Math.random() * 100 + 'vw';
-      petal.style.width = Math.random() * 8 + 6 + 'px';
-      petal.style.height = petal.style.width;
-      petal.style.animationDuration = Math.random() * 5 + 5 + 's';
-      document.body.appendChild(petal);
+// Hiệu ứng hoa rơi
+const canvas = document.getElementById("petals");
+const ctx = canvas.getContext("2d");
+let petals = [];
+const petalCount = 35;
 
-      setTimeout(() => petal.remove(), 10000);
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+window.addEventListener("resize", resizeCanvas);
+resizeCanvas();
+
+for (let i = 0; i < petalCount; i++) {
+  petals.push({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    r: Math.random() * 5 + 2,
+    d: Math.random() * 2 + 1
+  });
+}
+
+function drawPetals() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = "rgba(255, 182, 193, 0.8)";
+  ctx.beginPath();
+  for (let i = 0; i < petalCount; i++) {
+    const p = petals[i];
+    ctx.moveTo(p.x, p.y);
+    ctx.ellipse(p.x, p.y, p.r, p.r * 1.5, Math.PI / 4, 0, 2 * Math.PI);
+  }
+  ctx.fill();
+  updatePetals();
+}
+
+let angle = 0;
+function updatePetals() {
+  angle += 0.01;
+  for (let i = 0; i < petalCount; i++) {
+    const p = petals[i];
+    p.y += Math.cos(angle + p.d) + p.r / 2;
+    p.x += Math.sin(angle) * 2;
+    if (p.y > canvas.height) {
+      petals[i] = { x: Math.random() * canvas.width, y: 0, r: p.r, d: p.d };
     }
-    setInterval(createPetal, 200);
+  }
+}
 
-    // Chạm vào để bật/tắt nhạc
-    const nhac = document.getElementById('nhac');
-    let isPlaying = false;
+setInterval(drawPetals, 30);
+</script>
 
-    function toggleMusic() {
-      if (!isPlaying) {
-        nhac.play().catch(err => console.log("Chưa thể phát nhạc:", err));
-        isPlaying = true;
-      } else {
-        nhac.pause();
-        isPlaying = false;
-      }
-    }
-
-    // Sự kiện click hoặc chạm (cho điện thoại)
-    document.body.addEventListener('click', toggleMusic);
-    document.body.addEventListener('touchstart', toggleMusic);
-  </script>
 </body>
 </html>
