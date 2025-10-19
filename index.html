@@ -1,160 +1,122 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Chúc Thi 20/10 Vui Vẻ!</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bó hoa và nhạc</title>
+
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      background: linear-gradient(to bottom, #ffe6f2, #fff0f5);
+      margin: 0;
       overflow: hidden;
+      background: linear-gradient(to bottom, #ffe6f0, #ffffff);
       height: 100vh;
-      font-family: "Segoe Script", cursive;
       display: flex;
-      flex-direction: column;
       justify-content: center;
       align-items: center;
-    }
-    canvas#petals {
-      position: fixed; top: 0; left: 0;
-      width: 100%; height: 100%;
-      pointer-events: none; z-index: 0;
-    }
-    .center-content {
+      flex-direction: column;
       position: relative;
-      text-align: center;
-      z-index: 1;
-      transform: scale(1.5); /* bó hoa phóng to 1.5 lần */
+      touch-action: manipulation;
     }
-    #bouquet {
-      width: 350px;
+
+    img {
+      width: 45vw;
+      max-width: 300px;
       height: auto;
-      transform-origin: bottom center;
       animation: sway 3s ease-in-out infinite alternate;
-      filter: drop-shadow(0 0 15px rgba(255, 182, 193, 0.6));
+      z-index: 2;
+      user-select: none;
+      pointer-events: none;
     }
+
     @keyframes sway {
-      0% { transform: rotate(0deg); }
-      50% { transform: rotate(1.5deg) scale(1.02); }
-      100% { transform: rotate(-1.5deg) scale(1.02); }
+      0% { transform: rotate(-2deg); }
+      100% { transform: rotate(2deg); }
     }
-    h1 {
-      color: #ff4da6;
-      font-size: 2.3rem;
-      margin-top: 20px;
-      text-shadow: 0 0 10px #fff, 0 0 20px #ffb6c1;
-      animation: glow 2s ease-in-out infinite alternate;
+
+    /* Hoa rơi */
+    .petal {
+      position: absolute;
+      top: -10px;
+      background-color: pink;
+      border-radius: 50%;
+      opacity: 0.8;
+      animation: fall linear infinite;
+      z-index: 1;
     }
-    @keyframes glow {
-      from { text-shadow: 0 0 10px #fff, 0 0 20px #ffb6c1; }
-      to { text-shadow: 0 0 20px #fff, 0 0 40px #ff99cc; }
+
+    @keyframes fall {
+      0% {
+        transform: translateY(0) rotate(0deg);
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(100vh) rotate(720deg);
+        opacity: 0;
+      }
     }
-    #playMusic {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background: #ff80bf;
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 20px;
-      font-size: 1rem;
-      cursor: pointer;
-      box-shadow: 0 0 10px rgba(255, 150, 200, 0.5);
-      z-index: 10;
-      transition: 0.3s;
-      display: none; /* ẩn khi nhạc tự phát thành công */
+
+    h3 {
+      position: absolute;
+      bottom: 15px;
+      color: #d63384;
+      font-family: 'Segoe UI', sans-serif;
+      text-align: center;
+      font-size: 1.1em;
+      z-index: 3;
     }
-    #playMusic:hover {
-      background: #ff4da6;
-      transform: scale(1.05);
+
+    @media (max-width: 600px) {
+      img {
+        width: 70vw;
+      }
+      h3 {
+        font-size: 1em;
+      }
     }
   </style>
 </head>
 <body>
-  <canvas id="petals"></canvas>
 
-  <div class="center-content">
-    <img id="bouquet" src="hoa.png" alt="Bó hoa" />
-    <h1>Chúc Thi 20/10 vui vẻ!</h1>
-  </div>
+  <img src="hoa.png" alt="Bó hoa" id="hoa">
 
-  <audio id="bgm" src="nhac.mp3" autoplay loop></audio>
-  <button id="playMusic">Bật nhạc 🎵</button>
+  <h3>🌸 Chạm vào màn hình để nghe nhạc 🌸</h3>
+
+  <!-- KHÔNG có autoplay -->
+  <audio id="nhac" src="nhac.mp3" preload="none"></audio>
 
   <script>
-    // --- Thử tự động phát ---
-    const audio = document.getElementById("bgm");
-    const btn = document.getElementById("playMusic");
+    // Tạo hiệu ứng hoa rơi
+    function createPetal() {
+      const petal = document.createElement('div');
+      petal.classList.add('petal');
+      petal.style.left = Math.random() * 100 + 'vw';
+      petal.style.width = Math.random() * 8 + 6 + 'px';
+      petal.style.height = petal.style.width;
+      petal.style.animationDuration = Math.random() * 5 + 5 + 's';
+      document.body.appendChild(petal);
 
-    // Nếu bị chặn, hiển thị nút bật nhạc
-    audio.play().then(() => {
-      console.log("🎵 Nhạc tự phát thành công");
-    }).catch(() => {
-      btn.style.display = "block";
-      console.log("⚠️ Trình duyệt chặn tự phát");
-    });
+      setTimeout(() => petal.remove(), 10000);
+    }
+    setInterval(createPetal, 200);
 
-    btn.onclick = () => {
-      audio.play();
-      btn.innerText = "Đang phát 🎶";
-      setTimeout(() => btn.style.display = "none", 1000);
-    };
+    // Chạm vào để bật/tắt nhạc
+    const nhac = document.getElementById('nhac');
+    let isPlaying = false;
 
-    // --- Hiệu ứng hoa rơi ---
-    const canvas = document.getElementById("petals");
-    const ctx = canvas.getContext("2d");
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
-    const petals = [];
-    const petalCount = 40;
-    const random = (min, max) => Math.random() * (max - min) + min;
-
-    for (let i = 0; i < petalCount; i++) {
-      petals.push({
-        x: random(0, canvas.width),
-        y: random(0, canvas.height),
-        size: random(10, 25),
-        speedY: random(1, 2),
-        speedX: random(-0.5, 0.5),
-        rotation: random(0, 360),
-        color: `rgba(255, ${random(120,200)}, ${random(150,200)}, 0.8)`
-      });
+    function toggleMusic() {
+      if (!isPlaying) {
+        nhac.play().catch(err => console.log("Chưa thể phát nhạc:", err));
+        isPlaying = true;
+      } else {
+        nhac.pause();
+        isPlaying = false;
+      }
     }
 
-    function drawPetal(p) {
-      ctx.save();
-      ctx.translate(p.x, p.y);
-      ctx.rotate(p.rotation);
-      ctx.beginPath();
-      ctx.ellipse(0, 0, p.size, p.size * 0.6, Math.PI / 4, 0, 2 * Math.PI);
-      ctx.fillStyle = p.color;
-      ctx.fill();
-      ctx.restore();
-    }
-
-    function update() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      petals.forEach(p => {
-        p.y += p.speedY;
-        p.x += p.speedX;
-        p.rotation += 0.02;
-        if (p.y > canvas.height) {
-          p.y = -10;
-          p.x = random(0, canvas.width);
-        }
-        drawPetal(p);
-      });
-      requestAnimationFrame(update);
-    }
-    update();
-
-    window.addEventListener("resize", () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    });
+    // Sự kiện click hoặc chạm (cho điện thoại)
+    document.body.addEventListener('click', toggleMusic);
+    document.body.addEventListener('touchstart', toggleMusic);
   </script>
 </body>
 </html>
