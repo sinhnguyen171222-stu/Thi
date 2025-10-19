@@ -3,51 +3,64 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Chúc mừng 20/10</title>
+<title>Chúc Thi 20/10 Vui Vẻ!</title>
 <style>
+  * {
+    margin: 0; padding: 0; box-sizing: border-box;
+  }
   body {
-    margin: 0;
+    background: linear-gradient(to bottom right, #ffe6f0, #fff0f5);
     overflow: hidden;
     height: 100vh;
-    background: linear-gradient(to bottom right, #ffe6f0, #fff0f5);
     display: flex;
     flex-direction: column;
-    justify-content: flex-end;
+    justify-content: center;
     align-items: center;
-    text-align: center;
+    font-family: "Brush Script MT", cursive;
   }
   canvas {
-    position: absolute;
+    position: fixed;
     top: 0; left: 0;
     width: 100%; height: 100%;
     pointer-events: none;
+    z-index: 0;
   }
+  /* --- Hình bó hoa --- */
   #flower {
-    position: relative;
+    width: min(60vw, 300px); /* Tự co giãn theo màn hình, max 300px */
+    height: auto;
     z-index: 2;
-    transform: scale(1.5);
     animation: sway 3s ease-in-out infinite alternate;
+    transform-origin: bottom center;
+    filter: drop-shadow(0 0 15px rgba(255, 182, 193, 0.6));
   }
   @keyframes sway {
-    0% { transform: translateY(0) rotate(0deg) scale(1.5); }
-    100% { transform: translateY(-5px) rotate(2deg) scale(1.5); }
+    0% { transform: rotate(0deg) scale(1.05); }
+    50% { transform: rotate(2deg) scale(1.05); }
+    100% { transform: rotate(-2deg) scale(1.05); }
   }
+  /* --- Dòng chữ lời chúc --- */
   h1 {
-    position: relative;
-    z-index: 2;
+    margin-top: 20px;
+    font-size: clamp(1.5rem, 5vw, 2.5rem); /* Co giãn trên điện thoại */
     color: #d63384;
-    font-size: 2rem;
-    margin-bottom: 50px;
-    font-family: "Brush Script MT", cursive;
-    text-shadow: 2px 2px 6px rgba(255, 192, 203, 0.7);
+    text-shadow: 0 0 10px #fff, 0 0 20px #ffb6c1;
+    z-index: 2;
+    animation: glow 2s ease-in-out infinite alternate;
+    text-align: center;
+  }
+  @keyframes glow {
+    from { text-shadow: 0 0 10px #fff, 0 0 20px #ffb6c1; }
+    to { text-shadow: 0 0 25px #fff, 0 0 40px #ff99cc; }
   }
 </style>
 </head>
 <body>
 
 <canvas id="petals"></canvas>
-<img id="flower" src="hoa.png" alt="Bó hoa" />
-<h1>💐 Chúc Thi 20/10 vui vẻ! 💕</h1>
+
+<img id="flower" src="hoa.png" alt="Bó hoa">
+<h1> Chúc Thi 20/10 vui vẻ! </h1>
 
 <audio id="music" autoplay loop>
   <source src="nhac.mp3" type="audio/mpeg">
@@ -55,16 +68,19 @@
 
 <script>
 const audio = document.getElementById('music');
-// Tự động phát nhạc, nếu bị chặn thì chạm 1 lần là chạy
-document.body.addEventListener('click', () => {
-  if (audio.paused) audio.play();
+
+// Tự động phát nhạc, nếu bị chặn thì chạm một lần sẽ phát
+audio.play().catch(() => {
+  document.body.addEventListener('click', () => {
+    audio.play();
+  }, { once: true });
 });
 
-// Hiệu ứng hoa rơi
+// --- Hiệu ứng hoa rơi ---
 const canvas = document.getElementById("petals");
 const ctx = canvas.getContext("2d");
 let petals = [];
-const petalCount = 35;
+const petalCount = 40;
 
 function resizeCanvas() {
   canvas.width = window.innerWidth;
@@ -73,42 +89,48 @@ function resizeCanvas() {
 window.addEventListener("resize", resizeCanvas);
 resizeCanvas();
 
+function random(min, max) {
+  return Math.random() * (max - min) + min;
+}
+
 for (let i = 0; i < petalCount; i++) {
   petals.push({
-    x: Math.random() * canvas.width,
-    y: Math.random() * canvas.height,
-    r: Math.random() * 5 + 2,
-    d: Math.random() * 2 + 1
+    x: random(0, canvas.width),
+    y: random(0, canvas.height),
+    size: random(10, 25),
+    speedY: random(1, 2),
+    speedX: random(-0.5, 0.5),
+    rotation: random(0, 360),
+    color: `rgba(255, ${random(130,180)}, ${random(160,200)}, 0.8)`
   });
 }
 
-function drawPetals() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = "rgba(255, 182, 193, 0.8)";
+function drawPetal(p) {
+  ctx.save();
+  ctx.translate(p.x, p.y);
+  ctx.rotate(p.rotation);
   ctx.beginPath();
-  for (let i = 0; i < petalCount; i++) {
-    const p = petals[i];
-    ctx.moveTo(p.x, p.y);
-    ctx.ellipse(p.x, p.y, p.r, p.r * 1.5, Math.PI / 4, 0, 2 * Math.PI);
-  }
+  ctx.ellipse(0, 0, p.size, p.size * 0.6, Math.PI / 4, 0, 2 * Math.PI);
+  ctx.fillStyle = p.color;
   ctx.fill();
-  updatePetals();
+  ctx.restore();
 }
 
-let angle = 0;
-function updatePetals() {
-  angle += 0.01;
-  for (let i = 0; i < petalCount; i++) {
-    const p = petals[i];
-    p.y += Math.cos(angle + p.d) + p.r / 2;
-    p.x += Math.sin(angle) * 2;
+function update() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  petals.forEach(p => {
+    p.y += p.speedY;
+    p.x += p.speedX;
+    p.rotation += 0.02;
     if (p.y > canvas.height) {
-      petals[i] = { x: Math.random() * canvas.width, y: 0, r: p.r, d: p.d };
+      p.y = -10;
+      p.x = random(0, canvas.width);
     }
-  }
+    drawPetal(p);
+  });
+  requestAnimationFrame(update);
 }
-
-setInterval(drawPetals, 30);
+update();
 </script>
 
 </body>
